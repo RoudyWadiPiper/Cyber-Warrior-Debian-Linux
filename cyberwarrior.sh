@@ -17,10 +17,15 @@ sed -i 's/^password [success=2 default=ignore]pam_unix.so.*/password [success=2 
 sed -i 's/^auth [success=2 default=ingore]pam_unix.so nullok.*/auth [success=2 default=ingore]pam_unix.so/g' /etc/pam.d/common-auth
 echo Enabling Uncomplicated Firewall...
 sudo ufw enable
-echo Disabling Ngnix Service...
+echo Disabling Unsecure Services...
+sudo systemctl stop pure-ftpd
+sudo systemctl disable pure-ftpd
 sudo systemctl stop ngnix
 sudo systemctl disable ngnix
+sudo systemctl stop samba
+sudo systemctl disable samba
 echo Removing Prohibited Software...
+sudo apt-get remove zenmap nmap -y
 sudo apt remove aisleriot -y
 sudo apt remove wireshark -y
 sudo apt remove ophcrack -y
