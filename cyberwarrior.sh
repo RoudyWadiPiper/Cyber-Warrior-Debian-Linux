@@ -1,3 +1,9 @@
+#!/bin/bash
+
+echo Starting CyberWarrior!
+
+#Create Backups of Settings Files
+
 echo Creating Backups of Settings Files...
 sudo cp /etc/login.defs /
 mv /login.defs /BACKUPlogin.defs
@@ -61,6 +67,7 @@ then
 	sudo systemctl disable samba
 	echo Samba Service Disabled!
 fi
+echo Do Not Forget To Run Command To Check For Other Services: systemctl list-units --type=service --state=active
 
 #Remove Prohibited Software
 
