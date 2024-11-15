@@ -68,6 +68,15 @@ then
 	echo Samba Service Disabled!
 fi
 echo Do Not Forget To Run Command To Check For Other Services: systemctl list-units --type=service --state=active
+#Add Software
+
+echo Adding Required Software...
+read -p "Download X2GO? [y/n]" answer
+if [ "$answer" = "y" ]
+then
+	sudo apt-get install x2goserver
+	echo X2GO Installed Via APT!
+fi
 
 #Remove Prohibited Software
 
