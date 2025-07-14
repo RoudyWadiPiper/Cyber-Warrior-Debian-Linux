@@ -6,39 +6,87 @@ echo Starting CyberWarrior!
 
 echo Creating Backups of Settings Files...
 sudo cp /etc/login.defs /
-mv /login.defs /BACKUPlogin.defs
+mv /login.defs /Prevlogin.defs
 sudo cp /etc/pam.d/common-password /
-mv /common-password /BACKUPcommon-password
+mv /common-password /Prevcommon-password
 sudo cp /etc/pam.d/common-auth /
-mv /common-auth /BACKUPcommon-auth
+mv /common-auth /Prevcommon-auth
 sudo cp /etc/ssh/sshd_config /
-mv /sshd_config /BACKUPsshd_config
+mv /sshd_config /Prevsshd_config
 echo Backups Created!
 
 #Fix Password Settings
 
 echo Fixing Password Settings...
 sed -i 's/^PASS_MAX_DAYS.*/PASS_MAX_DAYS   90/g' /etc/login.defs
-sed -i 's/^PASS_MIN_DAYS.*/PASS_MIN_DAYS   3/g' /etc/login.defs
+sed -i 's/^PASS_MIN_DAYS.*/PASS_MIN_DAYS   5/g' /etc/login.defs
 sed -i 's/^PASS_WARN_AGE.*/PASS_WARN_AGE   7/g' /etc/login.defs
 sed -i 's/^LOGIN_RETRIES.*/LOGIN_RETRIES   5/g' /etc/login.defs
-sed -i 's/^LOGIN_TIMEOUT.*/LOGIN_TIMEOUT   60/g' /etc/login.defs
-sed -i 's/^password [success=2 default=ignore]pam_unix.so.*/password [success=2 default=ignore] pam_unix.so obscure sha512 minlen=8/g' /etc/pam.d/common-password
-sed -i 's/^auth [success=2 default=ingore]pam_unix.so nullok.*/auth [success=2 default=ingore]pam_unix.so/g' /etc/pam.d/common-auth
+sed -i 's/^LOGIN_TIMEOUT.*/LOGIN_TIMEOUT   300/g' /etc/login.defs
+sed -i 's/^password [.*/password [success=2 default=ignore]	pam_unix.so obscure sha512 minlen=14/g' /etc/pam.d/common-password
+sed -i 's/^auth [success=2.*/auth [success=2 default=ingore]	pam_unix.so/g' /etc/pam.d/common-auth
+sed -i 's/^MaxAuthTries.*/MaxAuthTries 3/g' /etc/ssh/sshd_config
 echo Password Settings Altered!
 
-#Enable Firewall
+#Enable Programs to Secure System and Make CyberPatriot Competition Easier
 
-read -p "Enable UFW? [y/n]" answer
+read -p "Enable UFW? (Firewall) [y/n]" answer
 if [ "$answer" = "y" ]
 then
-	sudo apt install -y mlocate ufw gufw net-tools htop
+	sudo apt install -y ufw gufw
 	sudo ufw default allow outgoing
 	sudo ufw default deny incoming
 	sudo ufw enable
 	echo Enabled Uncomplicated Firewall!
 else
 	echo Not Enabling UFW!
+fi
+
+read -p "Enable auditd? (Audit Logging) [y/n]" answer
+if [ "$answer" = "y" ]
+then
+	sudo apt install -y auditd
+	sudo auditctl -e 1
+	echo Enabled auditd!
+	echo "Configure in File /etc/audit/auditd.conf"
+else
+	echo Not Enabling auditd!
+fi
+
+read -p "Enable chkservice? (Service Viewer) [y/n]" answer
+if [ "$answer" = "y" ]
+then
+	sudo apt install -y chkservice
+	echo Enabled chkservice!
+else
+	echo Not Enabling chkservice!
+fi
+
+read -p "Enable plocate? (Locate Command) [y/n]" answer
+if [ "$answer" = "y" ]
+then
+	sudo apt install -y plocate
+	echo Enabled plocate!
+else
+	echo Not Enabling plocate!
+fi
+
+read -p "Enable net-tools? (Network Tools) [y/n]" answer
+if [ "$answer" = "y" ]
+then
+	sudo apt install -y net-tools
+	echo Enabled net-tools!
+else
+	echo Not Enabling net-tools!
+fi
+
+read -p "Enable htop? (Process Viewer) [y/n]" answer
+if [ "$answer" = "y" ]
+then
+	sudo apt install -y htop
+	echo Enabled htop!
+else
+	echo Not Enabling htop!
 fi
 
 #Disable Insecure Services
@@ -50,6 +98,17 @@ then
 	sudo systemctl stop pure-ftpd
 	sudo systemctl disable pure-ftpd
 	echo Ftpd Service Disabled!
+fi
+
+read -p "Is openssh-server a Critical Service? [y/n]  " answer
+if [ "$answer" = "n" ]
+then
+	sudo systemctl stop openssh-server
+	sudo systemctl stop openssh-cient
+	sudo systemctl disable openssh-server
+	sudo systemctl disable openssh-cient
+	sudo apt-get remove openssh-server openssh-client -y
+	echo Openssh-server Service Disabled!
 fi
 
 read -p "Is Ngnix a Critical Service? [y/n]  " answer
@@ -70,8 +129,8 @@ fi
 echo Do Not Forget To Run Command To Check For Other Services: systemctl list-units --type=service --state=active
 #Add Software
 
-echo Adding Required Software...
-read -p "Download X2GO? [y/n]" answer
+echo Adding Possible Required Software...
+read -p "Download X2GO (Remote Access Tool)? [y/n]" answer
 if [ "$answer" = "y" ]
 then
 	sudo apt-get install x2goserver
@@ -99,7 +158,7 @@ then
 	sudo apt remove aisleriot -y
 	echo Aisleriot Removed Via APT!
 fi
-read -p "Delete Zenmap-Nmap? [y/n]" answer
+read -p "Delete Nmap-Zenmap? [y/n]" answer
 if [ "$answer" = "y" ]
 then
 	sudo apt-get remove zenmap nmap -y
@@ -109,11 +168,11 @@ sudo apt autoremove -y
 
 #Disable Root Login
 
-read -p "Allow Root Login? [y/n]" answer
+read -p "Allow SSH Root Login? [y/n]" answer
 if [ "$answer" = "n" ]
 then
-	sed -i 's/^PermitRootLogin no.*/PermitRootLogin yes/g' /etc/ssh/sshd_config
-	echo Root Login Disabled!
+	sed -i 's/^PermitRootLogin yes.*/PermitRootLogin no/g' /etc/ssh/sshd_config
+	echo SSH Root Login Disabled!
 fi
 
 #Add group
@@ -169,12 +228,30 @@ do
 	read -p "Add Another User To Group? [y/n]" answer
 done
 
+#Mp3 Finder
+
+read -p "Find all files with a file extension? (Home Folder Only) [y/n] " answer
+while [ "$answer" = "y" ]
+do
+	read -p "Insert file extension: " fileex
+	sudo find /home -type f -name "*.$fileex" > $fileex.txt
+	sudo chmod ugo+rwx $fileex.txt
+	echo "All found files in $fileex.txt"
+	read -p "Search for another file extention? [y/n] " answer
+done
+
 #Update Packages
 
-echo Updating All Packages...
-sudo apt update
-sudo apt upgrade -y
-echo Updating Completed!
+read -p "Update all packages? [y/n]" answer
+if [ "$answer" = "y" ]
+then
+	echo Updating All Packages...
+	sudo apt update
+	sudo apt upgrade -y
+	echo Updating Completed!
+else
+	echo Not Updating All Packages!
+fi
 
 #End
 
