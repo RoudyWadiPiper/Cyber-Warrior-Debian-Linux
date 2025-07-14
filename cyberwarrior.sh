@@ -233,7 +233,7 @@ done
 read -p "Find all files with a file extension? (Home Folder Only) [y/n] " answer
 while [ "$answer" = "y" ]
 do
-	read -p "Insert file extension: " fileex
+	read -p "Insert file extension (NO DOT): " fileex
 	sudo find /home -type f -name "*.$fileex" > $fileex.txt
 	sudo chmod ugo+rwx $fileex.txt
 	echo "All found files in $fileex.txt"
