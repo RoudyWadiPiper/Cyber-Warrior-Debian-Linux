@@ -23,10 +23,27 @@ sed -i 's/^PASS_MIN_DAYS.*/PASS_MIN_DAYS   5/g' /etc/login.defs
 sed -i 's/^PASS_WARN_AGE.*/PASS_WARN_AGE   7/g' /etc/login.defs
 sed -i 's/^LOGIN_RETRIES.*/LOGIN_RETRIES   5/g' /etc/login.defs
 sed -i 's/^LOGIN_TIMEOUT.*/LOGIN_TIMEOUT   300/g' /etc/login.defs
-sed -i 's/^password [.*/password [success=2 default=ignore]	pam_unix.so obscure sha512 minlen=14/g' /etc/pam.d/common-password
+sed -i 's/^password [.*/password [success=2 default=ignore]	pam_unix.so obscure sha512 minlen=10/g' /etc/pam.d/common-password
 sed -i 's/^auth [success=2.*/auth [success=2 default=ingore]	pam_unix.so/g' /etc/pam.d/common-auth
 sed -i 's/^MaxAuthTries.*/MaxAuthTries 3/g' /etc/ssh/sshd_config
-echo Password Settings Altered!
+sudo chmod 640 /etc/shadow
+sudo chmod 640 /etc/passwd
+touch /usr/share/pam-configs/faillock
+echo -e Name: Enforce failed login attempt counter '\n'Default: no '\n'Priority: 0 '\n'Auth-Type: Primary \Auth:'\n'     [default=die]   pam_faillock.so authfail'\n'     sufficient  pam_faillock.so authsucc > /usr/share/pam-configs/faillock
+touch /usr/share/pam-configs/faillock_notify
+echo -e Name: Notify on failed login attempts '\n'Default: no '\n'Priority: 1024 '\n'Auth-Type: Primary '\n'Auth:'\n'     requisite   pam_faillock.so preauth > /usr/share/pam-configs/faillock_notify
+sudo pam-auth-update
+
+#Removing any netcat backdoors
+
+pkill -f nc.traditional
+which nc.traditional
+rm /usr/bin/nc.traditional 
+
+#Fixing IPv4 Stuff
+
+sed -i 's/^net.ipv4.tcp_syncookies=0.*/net.ipv4.tcp_syncookies=1/g' /etc/sysctl.conf
+sed -i 's/^net.ipv4.ip_forward=1.*/net.ipv4.ip_forward=0/g' /etc/sysctl.conf
 
 #Enable Programs to Secure System and Make CyberPatriot Competition Easier
 
@@ -171,7 +188,7 @@ sudo apt autoremove -y
 read -p "Allow SSH Root Login? [y/n]" answer
 if [ "$answer" = "n" ]
 then
-	sed -i 's/^PermitRootLogin yes.*/PermitRootLogin no/g' /etc/ssh/sshd_config
+	sed -i 's/^PermitRootLogin.*/PermitRootLogin no/g' /etc/ssh/sshd_config
 	echo SSH Root Login Disabled!
 fi
 
